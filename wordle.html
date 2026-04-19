@@ -53,6 +53,18 @@
     }
     #btn-new:hover { background: #6aaf65; }
 
+    #timer {
+      position: absolute;
+      left: 16px;
+      font-size: 1.1rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      font-variant-numeric: tabular-nums;
+      color: #818384;
+      transition: color 0.2s;
+    }
+    #timer.urgent { color: #e94560; }
+
     #toast {
       position: fixed;
       top: 70px;
@@ -273,6 +285,7 @@
 <body>
 
 <header>
+  <span id="timer">1:30</span>
   <h1>Wordle</h1>
   <button id="btn-new">New Game</button>
 </header>
@@ -393,6 +406,8 @@ let currentGuess = '';
 let gameOver = false;
 let revealInProgress = false;
 let lastWinGuess = null;
+let timerInterval = null;
+let timeLeft = 90;
 
 // Scoreboard persisted in localStorage
 function loadStats() {
@@ -433,6 +448,36 @@ function buildKeyboard() {
   });
 }
 
+// ---- Timer ----
+function renderTimer() {
+  const el = document.getElementById('timer');
+  const m = Math.floor(timeLeft / 60);
+  const s = timeLeft % 60;
+  el.textContent = `${m}:${String(s).padStart(2, '0')}`;
+  el.classList.toggle('urgent', timeLeft <= 10);
+}
+
+function startTimer() {
+  if (timerInterval) return;
+  timerInterval = setInterval(() => {
+    timeLeft--;
+    renderTimer();
+    if (timeLeft <= 0) {
+      clearInterval(timerInterval);
+      timerInterval = null;
+      gameOver = true;
+      showToast(answer, 3500);
+      recordResult(false, null);
+      renderScoreboard(null);
+    }
+  }, 1000);
+}
+
+function stopTimer() {
+  clearInterval(timerInterval);
+  timerInterval = null;
+}
+
 // ---- Game logic ----
 function newGame() {
   answer = WORDS[Math.floor(Math.random() * WORDS.length)].toUpperCase();
@@ -441,6 +486,9 @@ function newGame() {
   gameOver = false;
   revealInProgress = false;
   lastWinGuess = null;
+  timeLeft = 90;
+  stopTimer();
+  renderTimer();
   buildBoard();
   buildKeyboard();
   renderScoreboard(null);
@@ -448,6 +496,7 @@ function newGame() {
 
 function handleKey(key) {
   if (gameOver || revealInProgress) return;
+  startTimer();
   if (key === '⌫' || key === 'BACKSPACE') {
     currentGuess = currentGuess.slice(0, -1);
     renderCurrentRow();
@@ -557,6 +606,7 @@ function submitGuess() {
     const won = scored.every(s => s.state === 'correct');
     if (won) {
       gameOver = true;
+      stopTimer();
       lastWinGuess = guesses.length;
       const msgs = ['Genius!','Magnificent!','Impressive!','Splendid!','Great!','Phew!'];
       showToast(msgs[guesses.length - 1] || 'Nice!');
@@ -564,6 +614,7 @@ function submitGuess() {
       recordResult(true, guesses.length);
     } else if (guesses.length === 6) {
       gameOver = true;
+      stopTimer();
       showToast(answer, 3500);
       recordResult(false, null);
     }
