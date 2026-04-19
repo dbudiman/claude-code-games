@@ -4,7 +4,22 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Git Workflow
 
-Commit and push to GitHub after each meaningful unit of work — a feature, a fix, a refactor. Never leave completed work uncommitted. Use clear, descriptive commit messages that explain what changed and why. Push frequently so no progress is lost.
+Commit and push to GitHub after each meaningful unit of work — a feature, a fix, a refactor. Never leave completed work uncommitted. Push frequently so no progress is lost.
+
+**Commit format:** [Conventional Commits](https://www.conventionalcommits.org/)
+
+```
+<type>: <short description in lowercase>
+```
+
+Common types: `feat`, `fix`, `docs`, `refactor`, `chore`
+
+Examples:
+```
+feat: add 90-second countdown timer
+fix: stop timer on 6th-guess loss
+docs: update CLAUDE.md with style guidelines
+```
 
 ## Running the Games
 
@@ -61,3 +76,6 @@ No test framework. Verify changes by opening the file in a browser and manually 
 - **Single HTML file** — each game must remain fully self-contained in one `.html` file
 - **No backend** — all state lives in memory or `localStorage`; no fetch/XHR calls
 - **Browser-only** — must run by opening the file directly; no build step, no dev server required
+- **No unrequested refactoring** — do not refactor working code unless specifically asked
+- **No rule changes** — do not change game mechanics without explicit approval
+- **No inline event handlers** — use `addEventListener` only; never use `onclick="..."` or other `on*` HTML attributes
