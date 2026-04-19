@@ -503,10 +503,35 @@ function scoreGuess(guess, ans) {
   return result;
 }
 
+function getMissingRequiredLetters(guess) {
+  const required = {};
+  for (const scored of guesses) {
+    const counts = {};
+    for (const { letter, state } of scored) {
+      if (state === 'correct' || state === 'present') {
+        counts[letter] = (counts[letter] || 0) + 1;
+      }
+    }
+    for (const [letter, count] of Object.entries(counts)) {
+      required[letter] = Math.max(required[letter] || 0, count);
+    }
+  }
+  return Object.entries(required)
+    .filter(([letter, count]) => guess.split('').filter(l => l === letter).length < count)
+    .map(([letter]) => letter);
+}
+
 function submitGuess() {
   if (currentGuess.length < 5) {
     shakeRow(guesses.length);
     showToast('Not enough letters');
+    return;
+  }
+
+  const missing = getMissingRequiredLetters(currentGuess);
+  if (missing.length > 0) {
+    shakeRow(guesses.length);
+    showToast(`Must use: ${missing.join(', ')}`);
     return;
   }
 
